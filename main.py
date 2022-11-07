@@ -44,7 +44,7 @@ my_spectrum.gas_cells[-1].add_gas(gas_name  = "CH4",
 
 #%% 4. download (running hapi functions)
 with HiddenPrints():            # disables hapi stdout
-    my_spectrum.download(line_list = False) # when disabling line list, it will not be plotted
+    my_spectrum.download(line_list = True) # when disabling line list, it will not be plotted
 
 #%% 5. plot
 my_spectrum.plot()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os,sys
+import numpy as np
 from hapi import *
 db_begin ('data') # sets the folder for the hapi tables
 import matplotlib.pyplot as plt
@@ -46,7 +47,7 @@ class Gas_Cell():
         self.coef = []
         self.absorp = []
     
-    def add_gas(self, gas_name, VMR):
+    def add_gas(self, gas_name, VMR, *args):
         """
         Adds a new gas to the gas_cell
 
@@ -140,7 +141,7 @@ class Spectra():
                       )
         return return_str
           
-    def download(self, line_list = True, min_intensity = 5E-22):
+    def download(self, line_list = True, min_intensity = 1E-22):
         """fetches data from HItran and calculates spectra based on the gas cells.
         Equivalent to the "calculate" button on spectracalc.
         
@@ -150,7 +151,7 @@ class Spectra():
             if set True, a line list for the gasses in the cells will be downloaded.
             
         min_intensity : FLOAT, optional
-            Minimum intensity for a gas-line to be shown.
+            Minimum intensity for a gas-line to be shown. Default: 1E-22.
 
         Returns
         -------
@@ -279,11 +280,15 @@ class Helpers():
     @staticmethod
     def wav2lam(wn):
         # cm^{-1} to nm
-        return 1.0e7 / wn
+        with np.errstate(divide='ignore'):
+            lam = 1.0e7 / wn
+        return lam
     @staticmethod
     def lam2wave(lam):
         # nm to cm^{-1} 
-        return 1.0e7 / lam
+        with np.errstate(divide='ignore'):
+            wav = 1.0e7 / lam
+        return wav
      
     @staticmethod
     def hitran_molecule_number(name):
