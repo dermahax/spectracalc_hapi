@@ -141,7 +141,7 @@ class Spectra():
                       )
         return return_str
           
-    def download(self, line_list = True, min_intensity = 1E-22):
+    def download(self, line_list = True, min_intensity = 5E-23):
         """fetches data from HItran and calculates spectra based on the gas cells.
         Equivalent to the "calculate" button on spectracalc.
         
@@ -175,7 +175,6 @@ class Spectra():
                 if line_list:
                     _x,_y,= getStickXY(gas.gas_name)
                     _y[_y < min_intensity] = 0
-                    #self.observer.line_list.append([_x,_y])
                     self.observer.line_list.append({'x' : _x,
                                                     'y' : _y,
                                                     'label' : gas.gas_name})
@@ -222,33 +221,28 @@ class Spectra():
         fontsize_ax_label = 8
         fontsize_ticks = 8
         
-        
-        
         # check if line list is available
         if self.observer.line_list: nrows = 2
         else: nrows = 1
-        
-        
-        #f = plt.figure()
+ 
+        # create figure
         fig, axs = plt.subplots(nrows=nrows, ncols=1)
         fig.suptitle(self.name)
         
+        # line list plot (if data is downdloaded)
         if self.observer.line_list:
-            #f2 = plt.figure()
-            #plt.plot(xy[i][0],xy[i][1], label = labels[i]) for i in range(len(xy))
             [axs[0].plot(gas['x'], gas['y'], label = gas['label'] ) for gas in self.observer.line_list]
             axs[0].legend(loc='upper right', shadow=True, fontsize='small')
-            if ylog: axs[0].set_yscale('log')
             axs[0].set_ylabel(r"$intensity \/ \left[ \frac{1}{cm * mol}\/ cm^2 \right]$", fontsize=fontsize_ax_label)
             axs[0].set_xticklabels( () )
             axs[0].set_title('Linelist', fontsize = fontsize_subplot_title)
             axs[0].tick_params(labelsize=fontsize_ticks) 
             axs[0].grid()
+            if ylog: axs[0].set_yscale('log')
            
+        # gas cell plot  
         if self.observer.line_list: ax1 = axs[1]
         else: ax1 = axs
-        
-        #fig, ax1 = plt.subplots()
         for gas_cell in self.gas_cells:
             label_str = ''
             for gas in gas_cell.gasses:
@@ -259,9 +253,9 @@ class Spectra():
         ax1.legend(loc='upper right', shadow=True, fontsize='small')
         ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
-        ax1.grid()
         ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
         ax1.tick_params(labelsize=fontsize_ticks) 
+        ax1.grid()
         
         # wavelength on top
         ax2 = ax1.secondary_xaxis('top', functions=(Helpers.wav2lam, Helpers.lam2wave))
@@ -269,7 +263,6 @@ class Spectra():
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)                    
                         
-            
         if ylim:
             ax1.ylim(ylim)
         
