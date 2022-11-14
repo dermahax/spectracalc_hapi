@@ -1,52 +1,58 @@
 # -*- coding: utf-8 -*-
 
-import os,sys
+import matplotlib.pyplot as plt
+import os
+import sys
 import numpy as np
 from hapi import *
-db_begin ('data') # sets the folder for the hapi tables
-import matplotlib.pyplot as plt
+db_begin('data')  # sets the folder for the hapi tables
 
 
 class Observer():
-    """class representing an observer as on spectracalc.com"""
-    def __init__(self, 
-                 nu_min = 3065.0,
-                 nu_max = 3069.0,
+    """class representing an observer as on spectracalc.com
+    
+    """
+
+    def __init__(self,
+                 nu_min=3065.0,
+                 nu_max=3069.0,
                  ):
         self.nu_min = nu_min
         self.nu_max = nu_max
-        self.line_list = [] 
+        self.line_list = []
 
 
 class Gas():
     def __init__(self,
-                 gas_name = "H2O",
-                 VMR = 0.1):
+                 gas_name="H2O",
+                 VMR=0.1):
         self.gas_name = gas_name
         self.VMR = VMR
-        self.M = Helpers.hitran_molecule_number(self.gas_name) # hitran molecule ID
-        self.I = 1 # hitran Isotope number. Not yet taken into account, thus just 1
-    
+        self.M = Helpers.hitran_molecule_number(
+            self.gas_name)  # hitran molecule ID
+        self.I = 1  # hitran Isotope number. Not yet taken into account, thus just 1
+
 
 class Gas_Cell():
-    """Class representing a gas cell as on spectracalc.com """
-    def __init__(self, 
-                 name = '',
-                 temperature = 296, 
-                 pressure = 1,
-                 length = 10,
-                 no_gasses = 1
+    """Class representing a gas cell as on spectracalc.com 
+       After initialization, use the method .add_gas to add gasses to the cell."""
+    def __init__(self,
+                 name,
+                 temperature,
+                 pressure,
+                 length,
+                 no_gasses,
                  ):
         self.name = name
-        self.temperature = temperature # Kelvin
-        self.pressure = pressure # atm
-        self.length = length # cm
-        self.no_gasses = no_gasses # number of gasses in the cell
+        self.temperature = temperature  # Kelvin
+        self.pressure = pressure  # atm
+        self.length = length  # cm
+        self.no_gasses = no_gasses  # number of gasses in the cell
         self.gasses = []
         self.nu = []
         self.coef = []
         self.absorp = []
-    
+
     def add_gas(self, gas_name, VMR, *args):
         """
         Adds a new gas to the gas_cell
@@ -63,40 +69,48 @@ class Gas_Cell():
         None.
 
         """
-        gas = Gas(gas_name = gas_name, 
-                  VMR = VMR)
-        
-        if len(self.gasses)< self.no_gasses:
-            self.gasses.append(gas)
-            print('####################################### \n' +
-                  f'Added {gas.gas_name} to the gas cell. \n*' +
-                  f'{len(self.gasses)}/{self.no_gasses} gasses are now in the cell: \n'+ 
-                  f'{[gas.gas_name for gas in self.gasses]}')
-        else: 
-            print(f"Can't add more gasses to the cell. \n" +
-                  f'Gas cell already consists {self.no_gasses}: {[gas.gas_name for gas in self.gasses]}')
+        gas = Gas(gas_name=gas_name,
+                  VMR=VMR)
 
-                   
+        if len(self.gasses) < self.no_gasses:
+            self.gasses.append(gas)
+            print(
+                '####################################### \n' +
+                f'Added {gas.gas_name} to the gas cell. \n*' +
+                f'{len(self.gasses)}/{self.no_gasses} gasses are now in the cell: \n' +
+                f'{[gas.gas_name for gas in self.gasses]}')
+        else:
+            print(
+                f"Can't add more gasses to the cell. \n" +
+                f'Gas cell already consists {self.no_gasses}: {[gas.gas_name for gas in self.gasses]}')
+
 
 class Spectra():
-    """Parent class, containing an observer and gas_cells"""
-    def __init__(self, name = 'my spectrum'):
+    """Parent class representing containing all the information needed to plot one gas spectrum.
+        containins following objects:
+            - An observer (wavenumber range).
+            - Gas cells (with specific environment conditions and gasses).
+        
+        contains following methods:
+            - plot: quick way to visualize the results.
+            - print: (__repr__) -> summarizes all the relevant parameter.
+    """
+
+    def __init__(self, name='my spectrum'):
         self.name = name
         self.observer = None
         self.gas_cells = []
-        self.gas_cell_number = 0 # to count and adress the cells
-        
-    def add_gas_cell(self, 
-                     temperature = 296, 
-                     pressure = 1,
-                     length = 10,
-                     no_gasses = 1,
+        self.gas_cell_number = 0  # to count and adress the cells
+
+    def add_gas_cell(self,
+                     temperature=296,
+                     pressure=1,
+                     length=10,
+                     no_gasses=1,
                      ):
         """
         Adds a gas cell to the spectra.
-        ! hapi yet only does parallel gas cells. I.e. they will both be plotted,
-        but the absorption will not be calculated compbined. 
-        (Do not confuse with the gasses in one cell. Their absorption will be calculated combined.)
+        Do not confuse with the gasses in one cell. Their absorption will be calculated combined.
 
         Parameters
         ----------
@@ -114,14 +128,21 @@ class Spectra():
         -------
         None.
 
+        ! hapi yet only supports parallel gas cells. I.e. they will both be plotted,
+        but the absorption will not be calculated compbined (i.e. in a row).
         """
-        self.gas_cells.append(Gas_Cell(self.gas_cell_number, temperature, pressure, 
-                                       length, no_gasses))
+        self.gas_cells.append(
+            Gas_Cell(
+                name = self.gas_cell_number,
+                temperature = temperature,
+                pressure = pressure,
+                length = length,
+                no_gasses = no_gasses))
         self.gas_cell_number += 1
         return None
-     
+
     def __repr__(self):
-        gas_cell_str =''
+        gas_cell_str = ''
         for gas_cell in self.gas_cells:
             gas_cell_str += f'Gas cell {gas_cell.name}: \n'
             gas_cell_str += f'\t length: {gas_cell.length} cm |'
@@ -130,8 +151,7 @@ class Spectra():
             gas_cell_str += '\t Gasses: \n'
             for gas in gas_cell.gasses:
                 gas_cell_str += f'\t \t {gas.gas_name}: {gas.VMR} \n'
-            
-            
+
         return_str = ('##################################### \n' +
                       f'Summary of the spectum {self.name}: \n' +
                       f'\t nuMin: {self.observer.nu_min} \n' +
@@ -140,66 +160,68 @@ class Spectra():
                       '##################################### \n'
                       )
         return return_str
-          
-    def download(self, line_list = True, min_intensity = 5E-23):
+
+    def download(self, line_list=True, min_intensity=5E-23):
         """fetches data from HItran and calculates spectra based on the gas cells.
         Equivalent to the "calculate" button on spectracalc.
-        
+
          Parameters
         ----------
         line_list : BOOL, optional
             if set True, a line list for the gasses in the cells will be downloaded.
-            
+
         min_intensity : FLOAT, optional
-            Minimum intensity for a gas-line to be shown. Default: 1E-22.
+            Minimum intensity for a gas-line to be shown. Default: 5E-23.
 
         Returns
         -------
         None.
 
         """
-        
 
         for gas_cell in self.gas_cells:
-            
+
             # fetch data into data folder
             # getHelp(fetch)
             for gas in gas_cell.gasses:
-                fetch( TableName = gas.gas_name,
-                       M = gas.M,   # Hitran molecule number
-                       I = gas.I,       # Isotopes number
-                       numin = self.observer.nu_min,
-                       numax = self.observer.nu_max
-                       )
-                       
+                fetch(TableName=gas.gas_name,
+                      M=gas.M,   # Hitran molecule number
+                      I=gas.I,       # Isotopes number
+                      numin=self.observer.nu_min,
+                      numax=self.observer.nu_max
+                      )
+
                 if line_list:
-                    _x,_y,= getStickXY(gas.gas_name)
+                    _x, _y, = getStickXY(gas.gas_name)
                     _y[_y < min_intensity] = 0
-                    self.observer.line_list.append({'x' : _x,
-                                                    'y' : _y,
-                                                    'label' : gas.gas_name})
-                    
-        
+                    self.observer.line_list.append({'x': _x,
+                                                    'y': _y,
+                                                    'label': gas.gas_name})
+
             # absorption coefficient per gas_cell (can contain multiple gasses)
-            #getHelp(absorptionCoefficient_Voigt)
+            # getHelp(absorptionCoefficient_Voigt)
             try:
-                print('to check: ----------------------- \n', [(gas.M , gas.I , gas.VMR) for gas in gas_cell.gasses])
-                gas_cell.nu, gas_cell.coef =  absorptionCoefficient_Voigt( Components = [(gas.M , gas.I , gas.VMR) for gas in gas_cell.gasses],
-                                                    SourceTables = [gas.gas_name for gas in gas_cell.gasses] ,
-                                                    HITRAN_units = False, 
-                                                    Environment ={'T':gas_cell.temperature, 'p':gas_cell.pressure})
-            except IndexError: 
-                print(f'Error: \n' +
-                      f'Your gas cell {gas_cell.name} has not all gasses added. Currently {len(gas_cell.gasses)}/{gas_cell.no_gasses} gasses.')
+                print('to check: ----------------------- \n',
+                      [(gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses])
+                gas_cell.nu, gas_cell.coef = absorptionCoefficient_Voigt(
+                    Components=[
+                        (gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses], SourceTables=[
+                        gas.gas_name for gas in gas_cell.gasses], HITRAN_units=False, Environment={
+                        'T': gas_cell.temperature, 'p': gas_cell.pressure})
+            except IndexError:
+                print(
+                    f'Error: \n' +
+                    f'Your gas cell {gas_cell.name} has not all gasses added. Currently {len(gas_cell.gasses)}/{gas_cell.no_gasses} gasses.')
                 return
-            
+
             # absorption spectrum
             getHelp(absorptionSpectrum)
-            _, gas_cell.absorp = absorptionSpectrum(gas_cell.nu, gas_cell.coef, Environment = {'l' : gas_cell.length})
+            _, gas_cell.absorp = absorptionSpectrum(
+                gas_cell.nu, gas_cell.coef, Environment={
+                    'l': gas_cell.length})
         return None
-            
 
-    def plot(self, ylim = None, ylog = True):
+    def plot(self, ylim=None, ylog=True):
         """
         Simple plot functio. You may adjust it to your needs.
 
@@ -207,7 +229,7 @@ class Spectra():
         ----------
         ylim : List, optional
             You can set the ylimits, e.g. [0,1]. The default is automatic.
-            
+
         ylog : BOOL, optional
             if True, the y axis of the line list plot will be logarithmic.
 
@@ -216,59 +238,68 @@ class Spectra():
         None.
 
         """
-        #parameter
+        # parameter
         fontsize_subplot_title = 10
         fontsize_ax_label = 8
         fontsize_ticks = 8
-        
+
         # check if line list is available
-        if self.observer.line_list: nrows = 2
-        else: nrows = 1
- 
+        if self.observer.line_list:
+            nrows = 2
+        else:
+            nrows = 1
+
         # create figure
         fig, axs = plt.subplots(nrows=nrows, ncols=1)
         fig.suptitle(self.name)
-        
+
         # line list plot (if data is downdloaded)
         if self.observer.line_list:
-            [axs[0].plot(gas['x'], gas['y'], label = gas['label'] ) for gas in self.observer.line_list]
+            [axs[0].plot(gas['x'], gas['y'], label=gas['label'])
+             for gas in self.observer.line_list]
             axs[0].legend(loc='upper right', shadow=True, fontsize='small')
-            axs[0].set_ylabel(r"$intensity \/ \left[ \frac{1}{cm * mol}\/ cm^2 \right]$", fontsize=fontsize_ax_label)
-            axs[0].set_xticklabels( () )
-            axs[0].set_title('Linelist', fontsize = fontsize_subplot_title)
-            axs[0].tick_params(labelsize=fontsize_ticks) 
+            axs[0].set_ylabel(
+                r"intensity [$cm^{-1} * mol^{-1}*cm^2 $]",
+                fontsize=fontsize_ax_label)
+            axs[0].set_xticklabels(())
+            axs[0].set_title('Linelist', fontsize=fontsize_subplot_title)
+            axs[0].tick_params(labelsize=fontsize_ticks)
             axs[0].grid()
-            if ylog: axs[0].set_yscale('log')
-           
-        # gas cell plot  
-        if self.observer.line_list: ax1 = axs[1]
-        else: ax1 = axs
+            if ylog:
+                axs[0].set_yscale('log')
+
+        # gas cell plot
+        if self.observer.line_list:
+            ax1 = axs[1]
+        else:
+            ax1 = axs
         for gas_cell in self.gas_cells:
             label_str = ''
             for gas in gas_cell.gasses:
-                label_str += str(gas.gas_name) + ': ' + str(gas.VMR / gas_cell.length) + ' *m'
-            ax1.plot(gas_cell.nu, gas_cell.absorp, 
-                     label= label_str,  # names of all the gasses in the cell
+                label_str += str(gas.gas_name) + ': ' + \
+                    str(gas.VMR / gas_cell.length) + ' *m'
+            ax1.plot(gas_cell.nu, gas_cell.absorp,
+                     label=label_str,  # names of all the gasses in the cell
                      )
         ax1.legend(loc='upper right', shadow=True, fontsize='small')
         ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
         ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
-        ax1.tick_params(labelsize=fontsize_ticks) 
+        ax1.tick_params(labelsize=fontsize_ticks)
         ax1.grid()
-        
+
         # wavelength on top
-        ax2 = ax1.secondary_xaxis('top', functions=(Helpers.wav2lam, Helpers.lam2wave))
+        ax2 = ax1.secondary_xaxis(
+            'top', functions=(
+                Helpers.wav2lam, Helpers.lam2wave))
         ax2.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
         fig.tight_layout()
-        ax2.tick_params(labelsize=fontsize_ticks)                    
-                        
+        ax2.tick_params(labelsize=fontsize_ticks)
+
         if ylim:
             ax1.ylim(ylim)
-        
 
 
-        
 class Helpers():
     @staticmethod
     def wav2lam(wn):
@@ -276,77 +307,79 @@ class Helpers():
         with np.errstate(divide='ignore'):
             lam = 1.0e7 / wn
         return lam
+
     @staticmethod
     def lam2wave(lam):
-        # nm to cm^{-1} 
+        # nm to cm^{-1}
         with np.errstate(divide='ignore'):
             wav = 1.0e7 / lam
         return wav
-     
+
     @staticmethod
     def hitran_molecule_number(name):
         """given molecule name, it returns the hitran id"""
         hitran_molecule_dic = {
-         'H2O' : 1,  # Water
-         'CO2' : 2,	# Carbon Dioxide	
-         'O3' : 3,	# Ozone	
-         'N2O' : 4,	# Nitrous Oxide	
-         'CO' : 5,	# Carbon Monoxide	
-         'CH4' : 6,	# Methane	
-         'O2' : 7,	# Oxygen
-         }
-        """         
-         8	NO	Nitric Oxide	
-         9	SO2	Sulfur Dioxide	
-         10	NO2	Nitrogen Dioxide	
-         11	NH3	Ammonia	
-         12	HNO3	Nitric Acid	
-         13	OH	Hydroxyl	
-         14	HF	Hydrogen Fluoride	
-         15	HCl	Hydrogen Chloride	
-         16	HBr	Hydrogen Bromide	
-         17	HI	Hydrogen Iodide	
-         18	ClO	Chlorine Monoxide	
-         19	OCS	Carbonyl Sulfide	
-         20	H2CO	Formaldehyde	
-         21	HOCl	Hypochlorous Acid	
-         22	N2	Nitrogen	
-         23	HCN	Hydrogen Cyanide	
-         24	CH3Cl	Methyl Chloride	
-         25	H2O2	Hydrogen Peroxide	
-         26	C2H2	Acetylene	
-         27	C2H6	Ethane	
-         28	PH3	Phosphine	
-         29	COF2	Carbonyl Fluoride	
-         30	SF6	Sulfur Hexafluoride	
-         31	H2S	Hydrogen Sulfide	
-         32	HCOOH	Formic Acid	
-         33	HO2	Hydroperoxyl	
-         34	O	Oxygen Atom	
-         35	ClONO2	Chlorine Nitrate	
-         36	NO+	Nitric Oxide Cation	
-         37	HOBr	Hypobromous Acid	
-         38	C2H4	Ethylene	
-         39	CH3OH	Methanol	
-         40	CH3Br	Methyl Bromide	
-         41	CH3CN	Acetonitrile	
-         42	CF4	PFC-14	
-         43	C4H2	Diacetylene	
-         44	HC3N	Cyanoacetylene	
-         45	H2	Hydrogen	
-         46	CS	Carbon Monosulfide	
-         47	SO3	Sulfur trioxide	
-         48	C2N2	Cyanogen	
-         49	COCl2	Phosgene	
-         50	SO	Sulfur Monoxide	
-         51	CH3F	Methyl fluoride	
-         52	GeH4	Germane	
-         53	CS2	Carbon disulfide	
-         54	CH3I	Methyl iodide	
-         55	NF3	Nitrogen trifluoride	
+            'H2O': 1,  # Water
+            'CO2': 2,  # Carbon Dioxide
+            'O3': 3,  # Ozone
+            'N2O': 4,  # Nitrous Oxide
+            'CO': 5,  # Carbon Monoxide
+            'CH4': 6,  # Methane
+            'O2': 7,  # Oxygen
+        }
+        """
+         8	NO	Nitric Oxide
+         9	SO2	Sulfur Dioxide
+         10	NO2	Nitrogen Dioxide
+         11	NH3	Ammonia
+         12	HNO3	Nitric Acid
+         13	OH	Hydroxyl
+         14	HF	Hydrogen Fluoride
+         15	HCl	Hydrogen Chloride
+         16	HBr	Hydrogen Bromide
+         17	HI	Hydrogen Iodide
+         18	ClO	Chlorine Monoxide
+         19	OCS	Carbonyl Sulfide
+         20	H2CO	Formaldehyde
+         21	HOCl	Hypochlorous Acid
+         22	N2	Nitrogen
+         23	HCN	Hydrogen Cyanide
+         24	CH3Cl	Methyl Chloride
+         25	H2O2	Hydrogen Peroxide
+         26	C2H2	Acetylene
+         27	C2H6	Ethane
+         28	PH3	Phosphine
+         29	COF2	Carbonyl Fluoride
+         30	SF6	Sulfur Hexafluoride
+         31	H2S	Hydrogen Sulfide
+         32	HCOOH	Formic Acid
+         33	HO2	Hydroperoxyl
+         34	O	Oxygen Atom
+         35	ClONO2	Chlorine Nitrate
+         36	NO+	Nitric Oxide Cation
+         37	HOBr	Hypobromous Acid
+         38	C2H4	Ethylene
+         39	CH3OH	Methanol
+         40	CH3Br	Methyl Bromide
+         41	CH3CN	Acetonitrile
+         42	CF4	PFC-14
+         43	C4H2	Diacetylene
+         44	HC3N	Cyanoacetylene
+         45	H2	Hydrogen
+         46	CS	Carbon Monosulfide
+         47	SO3	Sulfur trioxide
+         48	C2N2	Cyanogen
+         49	COCl2	Phosgene
+         50	SO	Sulfur Monoxide
+         51	CH3F	Methyl fluoride
+         52	GeH4	Germane
+         53	CS2	Carbon disulfide
+         54	CH3I	Methyl iodide
+         55	NF3	Nitrogen trifluoride
          """
-         
+
         return hitran_molecule_dic[name]
+
 
 class HiddenPrints:
     def __enter__(self):

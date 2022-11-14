@@ -2,7 +2,7 @@
 Python representation of spectracalc.com using hapi
 
 Usage:
-	run main.py
+	run main.py or use the jupyter_example notebook.
 	Instructions are in the python file. The workflow is as close as possible to spectracalc.com
 	
 hapi reference:
