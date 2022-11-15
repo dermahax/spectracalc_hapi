@@ -326,12 +326,13 @@ class Helpers():
             'CO': 5,  # Carbon Monoxide
             'CH4': 6,  # Methane
             'O2': 7,  # Oxygen
+            'NO': 8,  #	Nitric Oxide
+         	'SO2': 9, #	Sulfur Dioxide
+         	'NO2': 10, #	Nitrogen Dioxide
+         	'NH3': 11, #	Ammonia
         }
         """
-         8	NO	Nitric Oxide
-         9	SO2	Sulfur Dioxide
-         10	NO2	Nitrogen Dioxide
-         11	NH3	Ammonia
+         these can be added if needed...
          12	HNO3	Nitric Acid
          13	OH	Hydroxyl
          14	HF	Hydrogen Fluoride
