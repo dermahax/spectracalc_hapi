@@ -1,3 +1,2 @@
-numpy==1.22.2
-matplotlib @ file:///C:/ci/matplotlib-suite_1638289827560/work
-matplotlib-inline @ file:///tmp/build/80754af9/matplotlib-inline_1628242447089/work
+numpy
+matplotlib
