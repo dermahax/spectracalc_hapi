@@ -4,8 +4,8 @@ Python representation of [spectracalc](www.spectracalc.com) using hapi.
 **Usage**:
 	run main.py,use the jupyter_example notebook or run it in binder.
 	Further instructions are in the code files. The workflow is as close as possible to spectracalc.com
-
-[Binder](https://hub.gke2.mybinder.org/user/dermahax-spectracalc_hapi-gce5z6tc/lab/tree/jupyter_example.ipynb)
+	
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dermahax/spectracalc_hapi/HEAD?labpath=jupyter_example.ipynb)
 
 
 **hapi reference**:
