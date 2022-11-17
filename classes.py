@@ -11,14 +11,28 @@ db_begin('data')  # sets the folder for the hapi tables
 class Observer():
     """class representing an observer as on spectracalc.com
     
+    Parameters
+        ----------
+        unit : String
+            'wav' : wavenumber [1/cm] or 'lam' : wavelength [nm]
+        lower : Float
+            
+        upper: Float
+
+        Returns
+        -------
+        None.
+    
     """
 
     def __init__(self,
-                 nu_min=3065.0,
-                 nu_max=3069.0,
+                 unit = 'wav', 
+                 lower=3065.0,
+                 upper=3069.0,
                  ):
-        self.nu_min = nu_min
-        self.nu_max = nu_max
+        self.unit = unit
+        self.lower = lower
+        self.upper = upper
         self.line_list = []
 
 
@@ -154,8 +168,8 @@ class Spectra():
 
         return_str = ('##################################### \n' +
                       f'Summary of the spectum {self.name}: \n' +
-                      f'\t nuMin: {self.observer.nu_min} \n' +
-                      f'\t nuMax: {self.observer.nu_max} \n' +
+                      f'\t nuMin: {self.observer.lower} \n' +
+                      f'\t nuMax: {self.observer.upper} \n' +
                       gas_cell_str +
                       '##################################### \n'
                       )
@@ -187,8 +201,8 @@ class Spectra():
                 fetch(TableName=gas.gas_name,
                       M=gas.M,   # Hitran molecule number
                       I=gas.I,       # Isotopes number
-                      numin=self.observer.nu_min,
-                      numax=self.observer.nu_max
+                      numin=self.observer.lower,
+                      numax=self.observer.upper
                       )
 
                 if line_list:
