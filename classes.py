@@ -31,9 +31,21 @@ class Observer():
                  upper=3069.0,
                  ):
         self.unit = unit
-        self.lower = lower
-        self.upper = upper
         self.line_list = []
+        if self.unit == 'wav':
+            self.lower_wav = lower
+            self.upper_wav = upper
+            self.lower_lam = Helpers.wav2lam(upper)
+            self.upper_lam = Helpers.wav2lam(lower)
+        elif self.unit == 'lam':
+            self.lower_wav = Helpers.lam2wav(upper)
+            self.upper_wav = Helpers.lam2wav(lower)
+            self.lower_lam = lower
+            self.upper_lam = upper
+        else:
+            print(f'{self.unit} type not defined. Please use "wav" for wavenumbers [1/cm] or "lam" for wavelength [nm].')
+            return
+
 
 
 class Gas():
@@ -63,9 +75,14 @@ class Gas_Cell():
         self.length = length  # cm
         self.no_gasses = no_gasses  # number of gasses in the cell
         self.gasses = []
+        # wavenumber
         self.nu = []
         self.coef = []
         self.absorp = []
+        # wavelength
+        self.lam = []
+        self.coef_lam = []
+        self.absorp_lam = []
 
     def add_gas(self, gas_name, VMR, *args):
         """
@@ -165,13 +182,18 @@ class Spectra():
             gas_cell_str += '\t Gasses: \n'
             for gas in gas_cell.gasses:
                 gas_cell_str += f'\t \t {gas.gas_name}: {gas.VMR} \n'
+        
+        if self.observer.unit == 'wav':
+            observer_str = (f'\t lower: {self.observer.lower_wav} [1/cm] \n' +
+                      f'\t upper: {self.observer.upper_wav} [1/cm] \n' )
+        elif self.observer.unit == 'lam': 
+            observer_str = (f'\t lower: {self.observer.lower_lam} [nm] \n' +
+                            f'\t upper: {self.observer.upper_lam} [nm] \n' )
 
         return_str = ('##################################### \n' +
                       f'Summary of the spectum {self.name}: \n' +
-                      f'\t nuMin: {self.observer.lower} \n' +
-                      f'\t nuMax: {self.observer.upper} \n' +
-                      gas_cell_str +
-                      '##################################### \n'
+                      observer_str + 
+                      gas_cell_str
                       )
         return return_str
 
@@ -201,16 +223,19 @@ class Spectra():
                 fetch(TableName=gas.gas_name,
                       M=gas.M,   # Hitran molecule number
                       I=gas.I,       # Isotopes number
-                      numin=self.observer.lower,
-                      numax=self.observer.upper
+                      numin=self.observer.lower_wav,
+                      numax=self.observer.upper_wav
                       )
 
                 if line_list:
                     _x, _y, = getStickXY(gas.gas_name)
                     _y[_y < min_intensity] = 0
-                    self.observer.line_list.append({'x': _x,
+                    self.observer.line_list.append({'nu': _x,
                                                     'y': _y,
-                                                    'label': gas.gas_name})
+                                                    'lam': np.flip(np.asarray([Helpers.wav2lam(wav) for wav in _x])),
+                                                    'y_lam': np.flip(_y),
+                                                    'label': gas.gas_name,
+                                                    })
 
             # absorption coefficient per gas_cell (can contain multiple gasses)
             # getHelp(absorptionCoefficient_Voigt)
@@ -222,6 +247,10 @@ class Spectra():
                         (gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses], SourceTables=[
                         gas.gas_name for gas in gas_cell.gasses], HITRAN_units=False, Environment={
                         'T': gas_cell.temperature, 'p': gas_cell.pressure})
+                
+                # wavelength conversion
+                gas_cell.lam = np.flip(np.asarray([Helpers.wav2lam(wav) for wav in gas_cell.nu]))
+                gas_cell.coef_lam = np.flip(gas_cell.coef)
             except IndexError:
                 print(
                     f'Error: \n' +
@@ -229,10 +258,11 @@ class Spectra():
                 return
 
             # absorption spectrum
-            getHelp(absorptionSpectrum)
+            #getHelp(absorptionSpectrum)
             _, gas_cell.absorp = absorptionSpectrum(
                 gas_cell.nu, gas_cell.coef, Environment={
                     'l': gas_cell.length})
+            gas_cell.absorp_lam = np.flip(gas_cell.absorp)
         return None
 
     def plot(self, ylim=None, ylog=True):
@@ -269,8 +299,12 @@ class Spectra():
 
         # line list plot (if data is downdloaded)
         if self.observer.line_list:
-            [axs[0].plot(gas['x'], gas['y'], label=gas['label'])
-             for gas in self.observer.line_list]
+            if self.observer.unit == 'wav': 
+                [axs[0].plot(gas['nu'], gas['y'], label=gas['label'])
+                 for gas in self.observer.line_list]
+            elif self.observer.unit == 'lam': 
+                [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'])
+                 for gas in self.observer.line_list]
             axs[0].legend(loc='upper right', shadow=True, fontsize='small')
             axs[0].set_ylabel(
                 r"intensity [$cm^{-1} * mol^{-1}*cm^2 $]",
@@ -292,21 +326,32 @@ class Spectra():
             for gas in gas_cell.gasses:
                 label_str += str(gas.gas_name) + ': ' + \
                     str(gas.VMR / gas_cell.length) + ' *m'
-            ax1.plot(gas_cell.nu, gas_cell.absorp,
-                     label=label_str,  # names of all the gasses in the cell
-                     )
+            # wav | lam
+            if self.observer.unit == 'wav':
+                ax1.plot(gas_cell.nu, gas_cell.absorp,
+                         label=label_str,  # names of all the gasses in the cell
+                         )
+            elif self.observer.unit == 'lam':
+                ax1.plot(gas_cell.lam, gas_cell.absorp_lam,
+                         label=label_str,  # names of all the gasses in the cell
+                         )
         ax1.legend(loc='upper right', shadow=True, fontsize='small')
-        ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
+        if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
+        elif self.observer.unit == 'lam':  ax1.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
         ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
         ax1.tick_params(labelsize=fontsize_ticks)
         ax1.grid()
 
-        # wavelength on top
-        ax2 = ax1.secondary_xaxis(
-            'top', functions=(
-                Helpers.wav2lam, Helpers.lam2wave))
-        ax2.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
+        # other unit on top
+        if self.observer.unit == 'wav': 
+            ax2 = ax1.secondary_xaxis(
+                'top', functions=( Helpers.wav2lam, Helpers.lam2wav))
+            ax2.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
+        elif self.observer.unit == 'lam':
+            ax2 = ax1.secondary_xaxis(
+                'top', functions=( Helpers.lam2wav, Helpers.wav2lam))
+            ax2.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)
 
@@ -323,7 +368,7 @@ class Helpers():
         return lam
 
     @staticmethod
-    def lam2wave(lam):
+    def lam2wav(lam):
         # nm to cm^{-1}
         with np.errstate(divide='ignore'):
             wav = 1.0e7 / lam
