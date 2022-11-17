@@ -172,10 +172,11 @@ class Spectra():
         self.gas_cell_number += 1
         return None
 
-    def __repr__(self):
-        gas_cell_str = ''
-        for gas_cell in self.gas_cells:
-            gas_cell_str += f'Gas cell {gas_cell.name}: \n'
+    def __repr__(self, cell = 'all'):
+        if cell == 'all': cell = slice(0,len(self.gas_cells))
+        else: cell = slice(cell, cell+1)
+        for gas_cell in self.gas_cells[cell]:
+            gas_cell_str = f'Gas cell {gas_cell.name}: \n'
             gas_cell_str += f'\t length: {gas_cell.length} cm |'
             gas_cell_str += f' temp: {gas_cell.temperature} K|'
             gas_cell_str += f'pressure: {gas_cell.pressure} atm \n'
@@ -190,8 +191,7 @@ class Spectra():
             observer_str = (f'\t lower: {self.observer.lower_lam} [nm] \n' +
                             f'\t upper: {self.observer.upper_lam} [nm] \n' )
 
-        return_str = ('##################################### \n' +
-                      f'Summary of the spectum {self.name}: \n' +
+        return_str = (f'Summary of the spectum {self.name}: \n' +
                       observer_str + 
                       gas_cell_str
                       )
@@ -264,7 +264,40 @@ class Spectra():
                     'l': gas_cell.length})
             gas_cell.absorp_lam = np.flip(gas_cell.absorp)
         return None
+    def export(self, directory = "exports"):
+        """ Method to export the spectral data. It will export the absorption data of your gas cells in the "directory" directorty.
+        
+         Parameters
+        ----------
+        dir : string, optional
+            directory where to save the txt file. default = 'exports'
 
+
+        Returns
+        -------
+        None.
+        
+        """
+        # check for directory
+        try: os.mkdir(os.path.join(os.getcwd(), directory)) 
+        except FileExistsError as error: pass
+        
+        for gas_cell in self.gas_cells:
+            filename = str(self.name) + '_gas_cell_' + str(gas_cell.name)
+            
+            with open(directory + os.sep + filename+'.txt', 'w') as f:
+                # write header
+                f.write(self.__repr__(cell = gas_cell.name))
+                
+                # write data (dependent on chosen unit)
+                if self.observer.unit == 'wav':    
+                    f.writelines('\n wavenumber [1/cm] \t absorption\n')
+                    [f.writelines(str(nu) +'\t' +str(absorp) + '\n') for nu, absorp in zip(gas_cell.nu, gas_cell.absorp)]   
+                elif self.observer.unit == 'lam':
+                    f.writelines('\n wavelenth [nm] \t absorption\n')
+                    [f.writelines(str(lam) +'\t' +str(absorp_lam) + '\n') for lam, absorp_lam in zip(gas_cell.lam, gas_cell.absorp_lam)] 
+                else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
+    
     def plot(self, ylim=None, ylog=True):
         """
         Simple plot functio. You may adjust it to your needs.
