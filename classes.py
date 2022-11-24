@@ -67,12 +67,14 @@ class Gas_Cell():
                  temperature,
                  pressure,
                  length,
+                 diluent,
                  no_gasses,
                  ):
         self.name = name
         self.temperature = temperature  # Kelvin
         self.pressure = pressure  # atm
         self.length = length  # cm
+        self.diluent = diluent # dictionary, like: {'air':0.8, 'O2' :0.2}
         self.no_gasses = no_gasses  # number of gasses in the cell
         self.gasses = []
         # wavenumber
@@ -137,6 +139,7 @@ class Spectra():
                      temperature=296,
                      pressure=1,
                      length=10,
+                     diluent = {'air':1},
                      no_gasses=1,
                      ):
         """
@@ -151,6 +154,9 @@ class Spectra():
             [mbar]. The default is 1 atm.
         length : float, optional
             [cm]. The default is 10 cm.
+        diluent : dictionary
+            The diluent, in which the gas of interest is solved in. The default is {'air':1}
+            The sum of the VMRs has to be 1. Example {'air': 0.5, 'O2': 0.2, 'N2': 0.3}
         no_gasses : int, optional
             Number of gasses in the cell. The default is 1.
 
@@ -168,6 +174,7 @@ class Spectra():
                 temperature = temperature,
                 pressure = pressure,
                 length = length,
+                diluent = diluent,
                 no_gasses = no_gasses))
         self.gas_cell_number += 1
         return None
@@ -181,7 +188,8 @@ class Spectra():
             gas_cell_str += f'Gas cell {gas_cell.name}: \n'
             gas_cell_str += f'\t length: {gas_cell.length} cm |'
             gas_cell_str += f' temp: {gas_cell.temperature} K|'
-            gas_cell_str += f'pressure: {gas_cell.pressure} atm \n'
+            gas_cell_str += f'pressure: {gas_cell.pressure} atm|'
+            gas_cell_str += f'diluent: {gas_cell.diluent} \n'
             gas_cell_str += '\t Gasses: \n'
             for gas in gas_cell.gasses:
                 gas_cell_str += f'\t \t {gas.gas_name}: {gas.VMR} \n'
@@ -244,11 +252,13 @@ class Spectra():
             try:
                 print('to check: ----------------------- \n',
                       [(gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses])
+                
                 gas_cell.nu, gas_cell.coef = absorptionCoefficient_Voigt(
-                    Components=[
-                        (gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses], SourceTables=[
-                        gas.gas_name for gas in gas_cell.gasses], HITRAN_units=False, Environment={
-                        'T': gas_cell.temperature, 'p': gas_cell.pressure})
+                    Components=[(gas.M, gas.I, gas.VMR) for gas in gas_cell.gasses], 
+                    SourceTables=[gas.gas_name for gas in gas_cell.gasses], 
+                    HITRAN_units=False,
+                    Environment={'T': gas_cell.temperature, 'p': gas_cell.pressure},
+                    Diluent= gas_cell.diluent)
                 
                 # wavelength conversion
                 gas_cell.lam = np.flip(np.asarray([Helpers.wav2lam(wav) for wav in gas_cell.nu]))
@@ -300,7 +310,7 @@ class Spectra():
                     [f.writelines(str(lam) +'\t' +str(absorp_lam) + '\n') for lam, absorp_lam in zip(gas_cell.lam, gas_cell.absorp_lam)] 
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
     
-    def plot(self, ylim=None, ylog=True, export=False):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (8,8)):
         """
         Simple plot functio. You may adjust it to your needs.
 
@@ -311,6 +321,9 @@ class Spectra():
 
         ylog : BOOL, optional
             if True, the y axis of the line list plot will be logarithmic.
+            
+        export : BOOL, optional
+            if True, the plot will be saved in exports/
 
         Returns
         -------
@@ -329,7 +342,7 @@ class Spectra():
             nrows = 1
 
         # create figure
-        fig, axs = plt.subplots(nrows=nrows, ncols=1)
+        fig, axs = plt.subplots(nrows=nrows, ncols=1, figsize=figsize)
         fig.suptitle(self.name)
 
         # line list plot (if data is downdloaded)
@@ -393,7 +406,7 @@ class Spectra():
         if ylim:
             ax1.ylim(ylim)
             
-        if export: plt.savefig(self.name +'_plot.png')
+        if export: plt.savefig(os.path.join('exports', self.name +'_plot.png'))
 
 
 class Helpers():
