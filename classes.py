@@ -173,10 +173,12 @@ class Spectra():
         return None
 
     def __repr__(self, cell = 'all'):
-        if cell == 'all': cell = slice(0,len(self.gas_cells))
+        gas_cell_str = ""
+        if cell == 'all': 
+            cell = slice(0,len(self.gas_cells))
         else: cell = slice(cell, cell+1)
         for gas_cell in self.gas_cells[cell]:
-            gas_cell_str = f'Gas cell {gas_cell.name}: \n'
+            gas_cell_str += f'Gas cell {gas_cell.name}: \n'
             gas_cell_str += f'\t length: {gas_cell.length} cm |'
             gas_cell_str += f' temp: {gas_cell.temperature} K|'
             gas_cell_str += f'pressure: {gas_cell.pressure} atm \n'
@@ -298,7 +300,7 @@ class Spectra():
                     [f.writelines(str(lam) +'\t' +str(absorp_lam) + '\n') for lam, absorp_lam in zip(gas_cell.lam, gas_cell.absorp_lam)] 
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
     
-    def plot(self, ylim=None, ylog=True):
+    def plot(self, ylim=None, ylog=True, export=False):
         """
         Simple plot functio. You may adjust it to your needs.
 
@@ -390,6 +392,8 @@ class Spectra():
 
         if ylim:
             ax1.ylim(ylim)
+            
+        if export: plt.savefig(self.name +'_plot.png')
 
 
 class Helpers():
