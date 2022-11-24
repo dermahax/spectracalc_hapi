@@ -310,7 +310,7 @@ class Spectra():
                     [f.writelines(str(lam) +'\t' +str(absorp_lam) + '\n') for lam, absorp_lam in zip(gas_cell.lam, gas_cell.absorp_lam)] 
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
     
-    def plot(self, ylim=None, ylog=True, export=False, figsize = (8,8)):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6)):
         """
         Simple plot functio. You may adjust it to your needs.
 
@@ -370,7 +370,7 @@ class Spectra():
         else:
             ax1 = axs
         for gas_cell in self.gas_cells:
-            label_str = ''
+            label_str = 'Cell ' + str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
                 label_str += str(gas.gas_name) + ': ' + \
                     str(gas.VMR / gas_cell.length) + ' *m'
