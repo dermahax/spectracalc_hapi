@@ -140,6 +140,7 @@ class Spectra():
                      pressure=1,
                      length=10,
                      diluent = {'air':1},
+                     #diluent = None,
                      no_gasses=1,
                      ):
         """
@@ -207,7 +208,7 @@ class Spectra():
                       )
         return return_str
 
-    def download(self, line_list=True, min_intensity=5E-23):
+    def download(self, line_list=True, min_intensity=5E-23, step = 0.002, HITRAN_units = False):
         """fetches data from HItran and calculates spectra based on the gas cells.
         Equivalent to the "calculate" button on spectracalc.
 
@@ -218,6 +219,12 @@ class Spectra():
 
         min_intensity : FLOAT, optional
             Minimum intensity for a gas-line to be shown. Default: 5E-23.
+            
+        step: float, optional
+            Step of the x-Axis (wav, lam). Default: 0.002
+        
+        HITRAN_units: BOOL
+            Whether to use Hitran Units (cgs) or SI. Default is False (i.e. SI units)
 
         Returns
         -------
@@ -258,7 +265,9 @@ class Spectra():
                     SourceTables=[gas.gas_name for gas in gas_cell.gasses], 
                     HITRAN_units=False,
                     Environment={'T': gas_cell.temperature, 'p': gas_cell.pressure},
-                    Diluent= gas_cell.diluent)
+                    Diluent= gas_cell.diluent,
+                    OmegaStep= step)
+                # if HITRAN_units:  # to do. see https://github.com/hapijs/hapi/issues/4206
                 
                 # wavelength conversion
                 gas_cell.lam = np.flip(np.asarray([Helpers.wav2lam(wav) for wav in gas_cell.nu]))
