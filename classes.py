@@ -67,14 +67,15 @@ class Gas_Cell():
                  temperature,
                  pressure,
                  length,
-                 diluent,
                  no_gasses,
                  ):
         self.name = name
         self.temperature = temperature  # Kelvin
         self.pressure = pressure  # atm
         self.length = length  # cm
-        self.diluent = diluent # dictionary, like: {'air':0.8, 'O2' :0.2}
+        #self.diluent = diluent # dictionary, like: {'air':0.8, 'O2' :0.2}
+        self.diluent = {'air': 1,
+                        'self':0}
         self.no_gasses = no_gasses  # number of gasses in the cell
         self.gasses = []
         # wavenumber
@@ -107,6 +108,9 @@ class Gas_Cell():
 
         if len(self.gasses) < self.no_gasses:
             self.gasses.append(gas)
+            self.diluent['air'] -= VMR
+            self.diluent['self'] += VMR
+            
             print(
                 '####################################### \n' +
                 f'Added {gas.gas_name} to the gas cell. \n*' +
@@ -139,8 +143,6 @@ class Spectra():
                      temperature=296,
                      pressure=1,
                      length=10,
-                     diluent = {'air':1},
-                     #diluent = None,
                      no_gasses=1,
                      ):
         """
@@ -155,9 +157,6 @@ class Spectra():
             [mbar]. The default is 1 atm.
         length : float, optional
             [cm]. The default is 10 cm.
-        diluent : dictionary
-            The diluent, in which the gas of interest is solved in. The default is {'air':1}
-            The sum of the VMRs has to be 1. Example {'air': 0.5, 'O2': 0.2, 'N2': 0.3}
         no_gasses : int, optional
             Number of gasses in the cell. The default is 1.
 
@@ -175,7 +174,7 @@ class Spectra():
                 temperature = temperature,
                 pressure = pressure,
                 length = length,
-                diluent = diluent,
+                #diluent = diluent, # implemented such, that air - VMR. This way, selfbroadenin is correct.
                 no_gasses = no_gasses))
         self.gas_cell_number += 1
         return None
@@ -190,8 +189,8 @@ class Spectra():
             gas_cell_str += f'\t length: {gas_cell.length} cm |'
             gas_cell_str += f' temp: {gas_cell.temperature} K|'
             gas_cell_str += f'pressure: {gas_cell.pressure} atm|'
-            gas_cell_str += f'diluent: {gas_cell.diluent} \n'
-            gas_cell_str += '\t Gasses: \n'
+            gas_cell_str += f'gas matrix: {gas_cell.diluent} \n'
+            gas_cell_str += '\t Gasses (VMR): \n'
             for gas in gas_cell.gasses:
                 gas_cell_str += f'\t \t {gas.gas_name}: {gas.VMR} \n'
         

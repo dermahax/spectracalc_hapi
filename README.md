@@ -4,7 +4,11 @@ Python representation of [spectracalc.com](www.spectracalc.com) using hapi.
 **Usage**:
 	run main.ipynb or for quick testing, use the binder link below.
 	Further instructions are in the code files. The workflow is as close as possible to spectracalc.com
-	
+    
+**Features:**  
+    Simple plotting and summary method
+    Correct implementation of self-broadening
+    
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dermahax/spectracalc_hapi/HEAD?labpath=main.ipynb)
 
 

@@ -19123,6 +19123,7 @@ def absorptionCoefficient_Voigt(Components=None,SourceTables=None,partitionFunct
                 try:
                     Gamma0DB = LOCAL_TABLE_CACHE[TableName]['data'][gamma_name][RowID]
                 except:
+                    print('!!!! For 0ne of the diluents gamma is missing. Set to 0!!!!')   # added Max 9.12.2022
                     Gamma0DB = 0.0
                 
                 n_name = 'n_' + species_lower
