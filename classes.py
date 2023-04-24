@@ -372,6 +372,8 @@ class Spectra():
             if ylog:
                 axs[0].set_yscale('log')
 
+        
+        
         # gas cell plot
         if self.observer.line_list:
             ax1 = axs[1]
@@ -380,8 +382,12 @@ class Spectra():
         for gas_cell in self.gas_cells:
             label_str = 'Cell ' + str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
+                # convert gasVMR in nice units
+                if gas.VMR < 1 and gas.VMR > 0.001: gas_VMR_str = f'{str(gas.VMR *100)} %'
+                elif gas.VMR < 0.001 and gas.VMR > 10E-8: gas_VMR_str = f'{str(gas.VMR *1E6)} ppm'
+                else: gas_VMR_str = str(gas.VMR)
                 label_str += str(gas.gas_name) + ': ' + \
-                    str(gas.VMR / gas_cell.length) + ' *m'
+                    gas_VMR_str +' for ' + str(gas_cell.length) + ' cm'
             # wav | lam
             if self.observer.unit == 'wav':
                 ax1.plot(gas_cell.nu, gas_cell.absorp,
