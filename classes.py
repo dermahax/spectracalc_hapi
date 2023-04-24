@@ -420,7 +420,9 @@ class Spectra():
         if ylim:
             ax1.ylim(ylim)
             
-        if export: plt.savefig(os.path.join('exports', self.name +'_plot.png'))
+        if export: 
+            plt.savefig(os.path.join('exports', self.name +'_plot.jpg'), dpi=300)
+            plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
 
 
 class Helpers():
