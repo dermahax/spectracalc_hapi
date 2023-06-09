@@ -12,7 +12,7 @@ Python representation of [spectracalc.com](www.spectracalc.com) using hapi.
     Simple plotting and summary method
     Correct implementation of self-broadening
 	Plotting of wavenumbers and wavelengths, as well as the absorption lines:
-	[Example plot](exports/example_plot.pdf)
+	![Example plot](exports/NH3_linien_plot.jpg)
 
     
 
