@@ -320,7 +320,7 @@ class Spectra():
     
     def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6)):
         """
-        Simple plot functio. You may adjust it to your needs.
+        Simple plot function. You may adjust it to your needs.
 
         Parameters
         ----------
