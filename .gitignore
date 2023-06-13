@@ -6,5 +6,3 @@ __pycache__/
 exports/
 .spyproject/
 saved_spectra/
-exports/*.txt
-exports/*.png
