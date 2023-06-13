@@ -207,7 +207,7 @@ class Spectra():
                       )
         return return_str
 
-    def download(self, line_list=True, min_intensity=5E-23, step = 0.002, HITRAN_units = False):
+    def download(self, line_list=True, min_intensity = 5E-23, step = 0.002, HITRAN_units = False):
         """fetches data from HItran and calculates spectra based on the gas cells.
         Equivalent to the "calculate" button on spectracalc.
 
@@ -217,7 +217,7 @@ class Spectra():
             if set True, a line list for the gasses in the cells will be downloaded.
 
         min_intensity : FLOAT, optional
-            Minimum intensity for a gas-line to be shown. Default: 5E-23.
+            Minimum intensity for a gas-line to be shown. Default: 5E-23. This is only for the sticky-line plot, the absorption sepctra is calculated on all lines.
             
         step: float, optional
             Step of the x-Axis (wav, lam). Default: 0.002
@@ -236,12 +236,15 @@ class Spectra():
             # fetch data into data folder
             # getHelp(fetch)
             for gas in gas_cell.gasses:
-                fetch(TableName=gas.gas_name,
-                      M=gas.M,   # Hitran molecule number
-                      I=gas.I,       # Isotopes number
-                      numin=self.observer.lower_wav,
-                      numax=self.observer.upper_wav
-                      )
+                try:
+                    fetch(TableName=gas.gas_name,
+                          M=gas.M,   # Hitran molecule number
+                          I=gas.I,       # Isotopes number
+                          numin=self.observer.lower_wav,
+                          numax=self.observer.upper_wav
+                          )
+                except Exception as e:
+                    print('no lines within the set interval.')
 
                 if line_list:
                     _x, _y, = getStickXY(gas.gas_name)
@@ -265,7 +268,8 @@ class Spectra():
                     HITRAN_units=False,
                     Environment={'T': gas_cell.temperature, 'p': gas_cell.pressure},
                     Diluent= gas_cell.diluent,
-                    OmegaStep= step)
+                    OmegaStep= step,
+                    OmegaRange = [self.observer.lower_wav, self.observer.upper_wav])
                 # if HITRAN_units:  # to do. see https://github.com/hapijs/hapi/issues/4206
                 
                 # wavelength conversion
@@ -317,6 +321,7 @@ class Spectra():
                     f.writelines('\n wavelenth [nm] \t absorption\n')
                     [f.writelines(str(lam) +'\t' +str(absorp_lam) + '\n') for lam, absorp_lam in zip(gas_cell.lam, gas_cell.absorp_lam)] 
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
+        print(f'Exported the absorption data to: {directory}')
     
     def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6)):
         """
@@ -343,6 +348,7 @@ class Spectra():
         fontsize_ax_label = 8
         fontsize_ticks = 8
 
+        
         # check if line list is available
         if self.observer.line_list:
             nrows = 2
@@ -353,14 +359,22 @@ class Spectra():
         fig, axs = plt.subplots(nrows=nrows, ncols=1, figsize=figsize)
         fig.suptitle(self.name)
 
+        # set x range for all subplots
+        if self.observer.unit == 'wav': custom_xlim = (self.observer.lower_wav, self.observer.upper_wav)
+        else: custom_xlim = (self.observer.lower_lam, self.observer.upper_lam)
+        plt.setp(axs, xlim=custom_xlim)
+        
         # line list plot (if data is downdloaded)
         if self.observer.line_list:
             if self.observer.unit == 'wav': 
-                [axs[0].plot(gas['nu'], gas['y'], label=gas['label'])
+                [axs[0].plot(gas['nu'], gas['y'], label=gas['label']) 
                  for gas in self.observer.line_list]
+                #axs[0].set_xlim([self.observer.lower_wav, self.observer.upper_wav])
             elif self.observer.unit == 'lam': 
                 [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'])
                  for gas in self.observer.line_list]
+                #axs[0].set_xlim([self.observer.lower_lam, self.observer.upper_lam])
+
             axs[0].legend(loc='upper right', shadow=True, fontsize='small')
             axs[0].set_ylabel(
                 r"intensity [$cm^{-1} * mol^{-1}*cm^2 $]",
@@ -393,10 +407,14 @@ class Spectra():
                 ax1.plot(gas_cell.nu, gas_cell.absorp,
                          label=label_str,  # names of all the gasses in the cell
                          )
+                #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
+
             elif self.observer.unit == 'lam':
                 ax1.plot(gas_cell.lam, gas_cell.absorp_lam,
                          label=label_str,  # names of all the gasses in the cell
                          )
+                #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
+
         ax1.legend(loc='upper right', shadow=True, fontsize='small')
         if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         elif self.observer.unit == 'lam':  ax1.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
