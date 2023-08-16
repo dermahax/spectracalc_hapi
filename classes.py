@@ -323,7 +323,7 @@ class Spectra():
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
         print(f'Exported the absorption data to: {directory}')
     
-    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6)):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -344,9 +344,9 @@ class Spectra():
 
         """
         # parameter
-        fontsize_subplot_title = 10
-        fontsize_ax_label = 8
-        fontsize_ticks = 8
+        fontsize_subplot_title = fontsize +2
+        fontsize_ax_label = fontsize
+        fontsize_ticks = fontsize
 
         
         # check if line list is available
@@ -415,7 +415,7 @@ class Spectra():
                          )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
 
-        ax1.legend(loc='upper right', shadow=True, fontsize='small')
+        ax1.legend(loc='upper right', shadow=True, fontsize=fontsize)
         if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         elif self.observer.unit == 'lam':  ax1.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
@@ -434,13 +434,15 @@ class Spectra():
             ax2.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)
-
+        
         if ylim:
             ax1.ylim(ylim)
             
         if export: 
-            plt.savefig(os.path.join('exports', self.name +'_plot.jpg'), dpi=300)
-            plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
+            fig.patch.set_alpha(0.)
+            plt.savefig(os.path.join('exports', self.name +'_plot.' + filetype), dpi=300)
+            #plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
+            #plt.savefig(os.path.join('exports', self.name +'_plot.svg'), dpi=300)
 
 
 class Helpers():
