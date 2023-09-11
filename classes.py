@@ -324,7 +324,7 @@ class Spectra():
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
         print(f'Exported the absorption data to: {directory}')
     
-    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10, color = 'blue'):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -368,11 +368,11 @@ class Spectra():
         # line list plot (if data is downdloaded)
         if self.observer.line_list:
             if self.observer.unit == 'wav': 
-                [axs[0].plot(gas['nu'], gas['y'], label=gas['label']) 
+                [axs[0].plot(gas['nu'], gas['y'], label=gas['label'], color = color) 
                  for gas in self.observer.line_list]
                 #axs[0].set_xlim([self.observer.lower_wav, self.observer.upper_wav])
             elif self.observer.unit == 'lam': 
-                [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'])
+                [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'],  color = color)
                  for gas in self.observer.line_list]
                 #axs[0].set_xlim([self.observer.lower_lam, self.observer.upper_lam])
 
@@ -407,13 +407,15 @@ class Spectra():
             if self.observer.unit == 'wav':
                 ax1.plot(gas_cell.nu, gas_cell.absorp,
                          label=label_str,  # names of all the gasses in the cell
-                         )
+                          color = color,
+                        )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
 
             elif self.observer.unit == 'lam':
                 ax1.plot(gas_cell.lam, gas_cell.absorp_lam,
                          label=label_str,  # names of all the gasses in the cell
-                         )
+                          color = color,
+                        )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
 
         ax1.legend(loc='upper left', shadow=True, fontsize=fontsize)
