@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+plt.rcParams['svg.fonttype'] = 'none' # when exporting svg, keeps the text as text, not path
 import os
 import sys
 import numpy as np
@@ -375,12 +376,12 @@ class Spectra():
                  for gas in self.observer.line_list]
                 #axs[0].set_xlim([self.observer.lower_lam, self.observer.upper_lam])
 
-            axs[0].legend(loc='upper right', shadow=True, fontsize='small')
+            axs[0].legend(loc='upper right', shadow=True, fontsize=fontsize)
             axs[0].set_ylabel(
                 r"intensity [$cm^{-1} * mol^{-1}*cm^2 $]",
                 fontsize=fontsize_ax_label)
             axs[0].set_xticklabels(())
-            axs[0].set_title('Linelist', fontsize=fontsize_subplot_title)
+            #axs[0].set_title('Linelist', fontsize=fontsize_subplot_title)
             axs[0].tick_params(labelsize=fontsize_ticks)
             axs[0].grid()
             if ylog:
@@ -415,11 +416,13 @@ class Spectra():
                          )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
 
-        ax1.legend(loc='upper right', shadow=True, fontsize=fontsize)
+        ax1.legend(loc='upper left', shadow=True, fontsize=fontsize)
+        #ax1.legend(bbox_to_anchor = (0.6, 0.7), loc='lower left', shadow=True, fontsize=fontsize) # for specific positioning
+        #https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates
         if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         elif self.observer.unit == 'lam':  ax1.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
-        ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
+        #ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
         ax1.tick_params(labelsize=fontsize_ticks)
         ax1.grid()
 
@@ -441,7 +444,7 @@ class Spectra():
         if export: 
             fig.patch.set_alpha(0.)
             plt.savefig(os.path.join('exports', self.name +'_plot.' + filetype), dpi=300)
-            #plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
+            plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
             #plt.savefig(os.path.join('exports', self.name +'_plot.svg'), dpi=300)
 
 
