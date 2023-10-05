@@ -324,7 +324,7 @@ class Spectra():
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
         print(f'Exported the absorption data to: {directory}')
     
-    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10, color = 'blue'):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10, color = None):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -350,12 +350,24 @@ class Spectra():
         fontsize_ticks = fontsize
 
         
+        # set color palette
+        if color == None: color = 'seaborn-v0_8-whitegrid'
+        plt.style.use(color) 
+        # https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+        
+        '''
+        # to change default colormap
+        plt.rcParams["image.cmap"] = "Set1"
+        # to change default color cycle
+        plt.rcParams['axes.prop_cycle'] = plt.cycler(color=plt.cm.Set1.colors)
+        '''
+        
         # check if line list is available
         if self.observer.line_list:
             nrows = 2
         else:
             nrows = 1
-
+        
         # create figure
         fig, axs = plt.subplots(nrows=nrows, ncols=1, figsize=figsize)
         fig.suptitle(self.name)
@@ -368,14 +380,17 @@ class Spectra():
         # line list plot (if data is downdloaded)
         if self.observer.line_list:
             if self.observer.unit == 'wav': 
-                [axs[0].plot(gas['nu'], gas['y'], label=gas['label'], color = color) 
+                #[axs[0].plot(gas['nu'], gas['y'], label=gas['label'], color = color) 
+                [axs[0].plot(gas['nu'], gas['y'], label=gas['label']) 
                  for gas in self.observer.line_list]
                 #axs[0].set_xlim([self.observer.lower_wav, self.observer.upper_wav])
             elif self.observer.unit == 'lam': 
-                [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'],  color = color)
+                #[axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'],  color = color)
+                [axs[0].plot(gas['lam'], gas['y_lam'], label=gas['label'])
                  for gas in self.observer.line_list]
                 #axs[0].set_xlim([self.observer.lower_lam, self.observer.upper_lam])
-
+            
+            # legend line list plot
             axs[0].legend(loc='upper right', shadow=True, fontsize=fontsize)
             axs[0].set_ylabel(
                 r"intensity [$cm^{-1} * mol^{-1}*cm^2 $]",
@@ -383,11 +398,10 @@ class Spectra():
             axs[0].set_xticklabels(())
             #axs[0].set_title('Linelist', fontsize=fontsize_subplot_title)
             axs[0].tick_params(labelsize=fontsize_ticks)
-            axs[0].grid()
+            #axs[0].grid()
             if ylog:
                 axs[0].set_yscale('log')
 
-        
         
         # gas cell plot
         if self.observer.line_list:
@@ -402,23 +416,24 @@ class Spectra():
                 elif gas.VMR < 0.001 and gas.VMR > 10E-8: gas_VMR_str = f'{str(gas.VMR *1E6)} ppm'
                 else: gas_VMR_str = str(gas.VMR)
                 label_str += str(gas.gas_name) + ': ' + \
-                    gas_VMR_str +' for ' + str(gas_cell.length) + ' cm'
+                    gas_VMR_str +' for ' + str(gas_cell.length) + ' cm @' + str(gas_cell.pressure) +' atm'
             # wav | lam
             if self.observer.unit == 'wav':
                 ax1.plot(gas_cell.nu, gas_cell.absorp,
                          label=label_str,  # names of all the gasses in the cell
-                          color = color,
+                          #color = color,
                         )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
 
             elif self.observer.unit == 'lam':
                 ax1.plot(gas_cell.lam, gas_cell.absorp_lam,
                          label=label_str,  # names of all the gasses in the cell
-                          color = color,
+                          #color = color,
                         )
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
-
-        ax1.legend(loc='upper left', shadow=True, fontsize=fontsize)
+        
+        # legend gas cell plot
+        ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
         #ax1.legend(bbox_to_anchor = (0.6, 0.7), loc='lower left', shadow=True, fontsize=fontsize) # for specific positioning
         #https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates
         if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
@@ -426,7 +441,7 @@ class Spectra():
         ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
         #ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
         ax1.tick_params(labelsize=fontsize_ticks)
-        ax1.grid()
+        #ax1.grid()
 
         # other unit on top
         if self.observer.unit == 'wav': 
@@ -439,7 +454,6 @@ class Spectra():
             ax2.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)
-        
         if ylim:
             ax1.ylim(ylim)
             
