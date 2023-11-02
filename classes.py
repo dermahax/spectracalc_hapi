@@ -324,7 +324,7 @@ class Spectra():
                 else: print(f'{unit} unit not known. Please use "wav" for wavenumber [1/cm] or "lam" for wavelength [nm] as argument for the observer')
         print(f'Exported the absorption data to: {directory}')
     
-    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10, color = None):
+    def plot(self, ylim=None, ylog=True, export=False, figsize = (12,6), filetype = 'svg', fontsize = 10, color = None, language = "English"):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -361,6 +361,20 @@ class Spectra():
         # to change default color cycle
         plt.rcParams['axes.prop_cycle'] = plt.cycler(color=plt.cm.Set1.colors)
         '''
+        #langauge stuff
+        if language == 'German': 
+            name_wavlen = 'Wellenlänge' 
+            name_wavnum = 'Wellenzahl'
+            name_absorp = 'Absorption'
+            name_cell = 'GasZelle'
+            for_str = 'für'
+        else:
+            name_wavlen = 'wavelength' 
+            name_wavnum = 'wavenumber'
+            name_absorp = 'absorption'
+            name_cell = 'cell'
+            for_str = 'for'
+        
         
         # check if line list is available
         if self.observer.line_list:
@@ -409,14 +423,14 @@ class Spectra():
         else:
             ax1 = axs
         for gas_cell in self.gas_cells:
-            label_str = 'Cell ' + str(gas_cell.name)+': '
+            label_str = name_cell +' '+ str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
                 # convert gasVMR in nice units
                 if gas.VMR < 1 and gas.VMR > 0.001: gas_VMR_str = f'{str(gas.VMR *100)} %'
                 elif gas.VMR < 0.001 and gas.VMR > 10E-8: gas_VMR_str = f'{str(gas.VMR *1E6)} ppm'
                 else: gas_VMR_str = str(gas.VMR)
                 label_str += str(gas.gas_name) + ': ' + \
-                    gas_VMR_str +' for ' + str(gas_cell.length) + ' cm @' + str(gas_cell.pressure) +' atm'
+                    gas_VMR_str +' ' + for_str +' ' + str(gas_cell.length) + ' cm @' + str(gas_cell.pressure) +' atm'
             # wav | lam
             if self.observer.unit == 'wav':
                 ax1.plot(gas_cell.nu, gas_cell.absorp,
@@ -433,12 +447,13 @@ class Spectra():
                 #ax1.set_xlim([self.observer.lower_wav, self.observer.upper_wav])
         
         # legend gas cell plot
+
         ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
         #ax1.legend(bbox_to_anchor = (0.6, 0.7), loc='lower left', shadow=True, fontsize=fontsize) # for specific positioning
         #https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates
-        if self.observer.unit == 'wav':    ax1.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
-        elif self.observer.unit == 'lam':  ax1.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
-        ax1.set_ylabel('absorption', fontsize=fontsize_ax_label)
+        if self.observer.unit == 'wav':    ax1.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label)
+        elif self.observer.unit == 'lam':  ax1.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label)
+        ax1.set_ylabel(name_absorp, fontsize=fontsize_ax_label)
         #ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
         ax1.tick_params(labelsize=fontsize_ticks)
         #ax1.grid()
@@ -447,11 +462,11 @@ class Spectra():
         if self.observer.unit == 'wav': 
             ax2 = ax1.secondary_xaxis(
                 'top', functions=( Helpers.wav2lam, Helpers.lam2wav))
-            ax2.set_xlabel('wavelength [nm]', fontsize=fontsize_ax_label)
+            ax2.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label)
         elif self.observer.unit == 'lam':
             ax2 = ax1.secondary_xaxis(
                 'top', functions=( Helpers.lam2wav, Helpers.wav2lam))
-            ax2.set_xlabel('wavenumber [1/cm]', fontsize=fontsize_ax_label)
+            ax2.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label)
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)
         if ylim:
