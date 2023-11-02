@@ -384,7 +384,7 @@ class Spectra():
         
         # create figure
         fig, axs = plt.subplots(nrows=nrows, ncols=1, figsize=figsize)
-        fig.suptitle(self.name)
+        #fig.suptitle(self.name)
 
         # set x range for all subplots
         if self.observer.unit == 'wav': custom_xlim = (self.observer.lower_wav, self.observer.upper_wav)
@@ -451,7 +451,7 @@ class Spectra():
         ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
         #ax1.legend(bbox_to_anchor = (0.6, 0.7), loc='lower left', shadow=True, fontsize=fontsize) # for specific positioning
         #https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates
-        if self.observer.unit == 'wav':    ax1.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label)
+        if self.observer.unit == 'wav':    ax1.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_labe)
         elif self.observer.unit == 'lam':  ax1.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label)
         ax1.set_ylabel(name_absorp, fontsize=fontsize_ax_label)
         #ax1.set_title('Gas cells', fontsize=fontsize_subplot_title)
@@ -462,11 +462,13 @@ class Spectra():
         if self.observer.unit == 'wav': 
             ax2 = ax1.secondary_xaxis(
                 'top', functions=( Helpers.wav2lam, Helpers.lam2wav))
-            ax2.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label)
+            ax2.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label, 
+                           labelpad= int(2 * fontsize*0.5))
         elif self.observer.unit == 'lam':
             ax2 = ax1.secondary_xaxis(
                 'top', functions=( Helpers.lam2wav, Helpers.wav2lam))
-            ax2.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label)
+            ax2.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label, 
+                           labelpad= int(2 * fontsize*0.5))
         fig.tight_layout()
         ax2.tick_params(labelsize=fontsize_ticks)
         if ylim:
