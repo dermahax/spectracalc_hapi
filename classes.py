@@ -341,7 +341,8 @@ class Spectra():
              fontsize = 10, 
              color = None, 
              language = "English",
-             absorbance = False):
+             absorbance = False,
+             prop_const = False):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -366,8 +367,11 @@ class Spectra():
             Either 'English' or 'German'. Sets the axis labels accordingly
         
         absorbance : BOOL, optional
-            If set to True, instead of the absorption plot the absorbance will be plotted. Default is False
-        Returns
+            If set to True, instead of the absorption the aborbance will be plotted.
+        
+        prop_const :BOOL, optional
+            If set to True, instead of the absorption or absorbance, the proportionality factor FAC:  conc = FAC * Absorance - will be plotted.
+            Only yet works for one gas in a gas cell.
         -------
         None.
 
@@ -393,14 +397,16 @@ class Spectra():
         if language == 'German': 
             name_wavlen = 'Wellenlänge' 
             name_wavnum = 'Wellenzahl'
-            if absorbance: name_absorp = 'Absorbanz'
+            if prop_const : name_absorp = 'Konstante [ppm*m]'
+            elif absorbance: name_absorp = 'Absorbanz'
             else: name_absorp = 'Absorption'
             name_cell = 'GasZelle'
             for_str = 'für'
         else:
             name_wavlen = 'wavelength' 
             name_wavnum = 'wavenumber'
-            if absorbance: name_absorp = 'Absorbance'
+            if prop_const : name_absorp = 'Constant [ppm*m]'
+            elif absorbance: name_absorp = 'Absorbance'
             else: name_absorp = 'Absorption'
             name_cell = 'cell'
             for_str = 'for'
@@ -459,27 +465,23 @@ class Spectra():
                 else: gas_VMR_str = str(gas.VMR)
                 label_str += str(gas.gas_name) + ': ' + \
                     gas_VMR_str +' ' + for_str +' ' + str(gas_cell.length) + ' cm @' + str(gas_cell.pressure) +' atm'
-            if not absorbance:
-                # wav | lam
-                if self.observer.unit == 'wav':
-                    ax1.plot(gas_cell.nu, gas_cell.absorp,
-                             label=label_str,  # names of all the gasses in the cell
-                            )
-                elif self.observer.unit == 'lam':
-                    ax1.plot(gas_cell.lam, gas_cell.absorp_lam,
-                             label=label_str,  # names of all the gasses in the cell
-                            )
-            else:
-                if self.observer.unit == 'wav':
-                    ax1.plot(gas_cell.nu, gas_cell.absorbance,
-                             label=label_str,  # names of all the gasses in the cell
-                            )
-                elif self.observer.unit == 'lam':
-                    ax1.plot(gas_cell.lam, gas_cell.absorbance_lam,
-                             label=label_str,  # names of all the gasses in the cell
-                            )
-
-        
+            
+            # handle what to plot
+            if prop_const and self.observer.unit== 'lam': 
+                x = gas_cell.lam
+                y = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / gas_cell.absorbance_lam # yet only works for one gas, 1E4 for unit conversion
+                y[y > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
+            elif prop_const and self.observer.unit== 'wav': 
+                x = gas_cell.wav
+                y = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / gas_cell.absorbance # yet only works for one gas, 1E4 for unit conversion
+                y[y > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
+            elif absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorbance
+            elif absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorbance_lam
+            elif not absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorp
+            elif not absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorp_lam
+            
+            ax1.plot(x, y, label=label_str)
+       
         
         # legend gas cell plot
         ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
@@ -536,65 +538,62 @@ class Helpers():
     def hitran_molecule_number(name):
         """given molecule name, it returns the hitran id"""
         hitran_molecule_dic = {
-            'H2O': 1,  # Water
-            'CO2': 2,  # Carbon Dioxide
-            'O3': 3,  # Ozone
-            'N2O': 4,  # Nitrous Oxide
-            'CO': 5,  # Carbon Monoxide
-            'CH4': 6,  # Methane
-            'O2': 7,  # Oxygen
-            'NO': 8,  #	Nitric Oxide
-         	'SO2': 9, #	Sulfur Dioxide
-         	'NO2': 10, #	Nitrogen Dioxide
-         	'NH3': 11, #	Ammonia
-        }
-        """
-         these can be added if needed...
-         12	HNO3	Nitric Acid
-         13	OH	Hydroxyl
-         14	HF	Hydrogen Fluoride
-         15	HCl	Hydrogen Chloride
-         16	HBr	Hydrogen Bromide
-         17	HI	Hydrogen Iodide
-         18	ClO	Chlorine Monoxide
-         19	OCS	Carbonyl Sulfide
-         20	H2CO	Formaldehyde
-         21	HOCl	Hypochlorous Acid
-         22	N2	Nitrogen
-         23	HCN	Hydrogen Cyanide
-         24	CH3Cl	Methyl Chloride
-         25	H2O2	Hydrogen Peroxide
-         26	C2H2	Acetylene
-         27	C2H6	Ethane
-         28	PH3	Phosphine
-         29	COF2	Carbonyl Fluoride
-         30	SF6	Sulfur Hexafluoride
-         31	H2S	Hydrogen Sulfide
-         32	HCOOH	Formic Acid
-         33	HO2	Hydroperoxyl
-         34	O	Oxygen Atom
-         35	ClONO2	Chlorine Nitrate
-         36	NO+	Nitric Oxide Cation
-         37	HOBr	Hypobromous Acid
-         38	C2H4	Ethylene
-         39	CH3OH	Methanol
-         40	CH3Br	Methyl Bromide
-         41	CH3CN	Acetonitrile
-         42	CF4	PFC-14
-         43	C4H2	Diacetylene
-         44	HC3N	Cyanoacetylene
-         45	H2	Hydrogen
-         46	CS	Carbon Monosulfide
-         47	SO3	Sulfur trioxide
-         48	C2N2	Cyanogen
-         49	COCl2	Phosgene
-         50	SO	Sulfur Monoxide
-         51	CH3F	Methyl fluoride
-         52	GeH4	Germane
-         53	CS2	Carbon disulfide
-         54	CH3I	Methyl iodide
-         55	NF3	Nitrogen trifluoride
-         """
+                            'H2O': 1,  # Water
+                            'CO2': 2,  # Carbon Dioxide
+                            'O3': 3,  # Ozone
+                            'N2O': 4,  # Nitrous Oxide
+                            'CO': 5,  # Carbon Monoxide
+                            'CH4': 6,  # Methane
+                            'O2': 7,  # Oxygen
+                            'NO': 8,  # Nitric Oxide
+                            'SO2': 9, # Sulfur Dioxide
+                            'NO2': 10, # Nitrogen Dioxide
+                            'NH3': 11, # Ammonia
+                            'HNO3': 12, # Nitric Acid
+                            'OH': 13, # Hydroxyl
+                            'HF': 14, # Hydrogen Fluoride
+                            'HCl': 15, # Hydrogen Chloride
+                            'HBr': 16, # Hydrogen Bromide
+                            'HI': 17, # Hydrogen Iodide
+                            'ClO': 18, # Chlorine Monoxide
+                            'OCS': 19, # Carbonyl Sulfide
+                            'H2CO': 20, # Formaldehyde
+                            'HOCl': 21, # Hypochlorous Acid
+                            'N2': 22, # Nitrogen
+                            'HCN': 23, # Hydrogen Cyanide
+                            'CH3Cl': 24, # Methyl Chloride
+                            'H2O2': 25, # Hydrogen Peroxide
+                            'C2H2': 26, # Acetylene
+                            'C2H6': 27, # Ethane
+                            'PH3': 28, # Phosphine
+                            'COF2': 29, # Carbonyl Fluoride
+                            'SF6': 30, # Sulfur Hexafluoride
+                            'H2S': 31, # Hydrogen Sulfide
+                            'HCOOH': 32, # Formic Acid
+                            'HO2': 33, # Hydroperoxyl
+                            'O': 34, # Oxygen Atom
+                            'ClONO2': 35, # Chlorine Nitrate
+                            'NO+': 36, # Nitric Oxide Cation
+                            'HOBr': 37, # Hypobromous Acid
+                            'C2H4': 38, # Ethylene
+                            'CH3OH': 39, # Methanol
+                            'CH3Br': 40, # Methyl Bromide
+                            'CH3CN': 41, # Acetonitrile
+                            'CF4': 42, # PFC-14
+                            'C4H2': 43, # Diacetylene
+                            'HC3N': 44, # Cyanoacetylene
+                            'H2': 45, # Hydrogen
+                            'CS': 46, # Carbon Monosulfide
+                            'SO3': 47, # Sulfur trioxide
+                            'C2N2': 48, # Cyanogen
+                            'COCl2': 49, # Phosgene
+                            'SO': 50, # Sulfur Monoxide
+                            'CH3F': 51, # Methyl fluoride
+                            'GeH4': 52, # Germane
+                            'CS2': 53, # Carbon disulfide
+                            'CH3I': 54, # Methyl iodide
+                            'NF3': 55, # Nitrogen trifluoride
+                        }
 
         return hitran_molecule_dic[name]
 
