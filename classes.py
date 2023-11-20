@@ -84,11 +84,13 @@ class Gas_Cell():
         self.coef = []
         self.absorp = []
         self.absorbance = []
+        self.prop_const = []
         # wavelength
         self.lam = []
         self.coef_lam = []
         self.absorp_lam = []
         self.absorbance_lam = []
+        self.prop_const_lam = []
 
     def add_gas(self, gas_name, VMR, *args):
         """
@@ -295,6 +297,10 @@ class Spectra():
             gas_cell.absorbance = [-np.log(1 - val) for val in gas_cell.absorp]
             gas_cell.absorbance_lam = np.flip(gas_cell.absorbance)
             
+            # prop constants
+            gas_cell.prop_const = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / np.array(gas_cell.absorbance)
+            gas_cell.prop_const_lam = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / gas_cell.absorbance_lam
+            
             
         return None
     def export(self, directory = "exports"):
@@ -370,7 +376,7 @@ class Spectra():
             If set to True, instead of the absorption the aborbance will be plotted.
         
         prop_const :BOOL, optional
-            If set to True, instead of the absorption or absorbance, the proportionality factor FAC:  conc = FAC * Absorance - will be plotted.
+            If set to True, a 2nd y-axis with the proportionality factor FAC is drawn:  conc = FAC * Absorance
             Only yet works for one gas in a gas cell.
         -------
         None.
@@ -456,6 +462,9 @@ class Spectra():
             ax1 = axs[1]
         else:
             ax1 = axs
+        if prop_const: 
+            ax2 = ax1.twinx()
+            ax2.grid(None)
         for gas_cell in self.gas_cells:
             label_str = name_cell +' '+ str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
@@ -467,20 +476,16 @@ class Spectra():
                     gas_VMR_str +' ' + for_str +' ' + str(gas_cell.length) + ' cm @' + str(gas_cell.pressure) +' atm'
             
             # handle what to plot
-            if prop_const and self.observer.unit== 'lam': 
-                x = gas_cell.lam
-                y = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / gas_cell.absorbance_lam # yet only works for one gas, 1E4 for unit conversion
-                y[y > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
-            elif prop_const and self.observer.unit== 'wav': 
-                x = gas_cell.wav
-                y = gas_cell.gasses[0].VMR * gas_cell.length *1E4 / gas_cell.absorbance # yet only works for one gas, 1E4 for unit conversion
-                y[y > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
-            elif absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorbance
-            elif absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorbance_lam
+            if absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorbance_lam
             elif not absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorp
             elif not absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorp_lam
-            
             ax1.plot(x, y, label=label_str)
+            if prop_const: 
+                if self.observer.unit== 'lam': y2 = gas_cell.prop_const_lam
+                elif self.observer.unit== 'wav': y2 = gas_cell.prop_const
+                y2[y2 > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
+                ax2.plot(x,y2, '--', color='grey')    
+                ax2.set_ylabel('proptionality constant')
        
         
         # legend gas cell plot
@@ -517,7 +522,7 @@ class Spectra():
             plt.savefig(os.path.join('exports', self.name +'_plot.' + filetype), dpi=300)
             plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
 
-
+        return ax1
 
 class Helpers():
     @staticmethod
