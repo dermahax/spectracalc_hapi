@@ -403,16 +403,14 @@ class Spectra():
         if language == 'German': 
             name_wavlen = 'Wellenlänge' 
             name_wavnum = 'Wellenzahl'
-            if prop_const : name_absorp = 'Konstante [ppm*m]'
-            elif absorbance: name_absorp = 'Absorbanz'
+            if absorbance: name_absorp = 'Absorbanz'
             else: name_absorp = 'Absorption'
             name_cell = 'GasZelle'
             for_str = 'für'
         else:
             name_wavlen = 'wavelength' 
             name_wavnum = 'wavenumber'
-            if prop_const : name_absorp = 'Constant [ppm*m]'
-            elif absorbance: name_absorp = 'Absorbance'
+            if absorbance: name_absorp = 'Absorbance'
             else: name_absorp = 'Absorption'
             name_cell = 'cell'
             for_str = 'for'
@@ -485,7 +483,7 @@ class Spectra():
                 elif self.observer.unit== 'wav': y2 = gas_cell.prop_const
                 y2[y2 > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
                 ax2.plot(x,y2, '--', color='grey')    
-                ax2.set_ylabel('proptionality constant')
+                ax2.set_ylabel('proptionality constant [ppm*m]')
        
         
         # legend gas cell plot
