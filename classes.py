@@ -382,15 +382,21 @@ class Spectra():
         None.
 
         """
+        # set color palette
+        if color == None: color = 'seaborn-v0_8-whitegrid'
+        plt.style.use(color) 
+        
         # parameter
         fontsize_subplot_title = fontsize +2
         fontsize_ax_label = fontsize
         fontsize_ticks = fontsize
+        plt.rcParams['font.size']= fontsize
+        plt.rcParams['axes.labelsize'] = fontsize
+        plt.rcParams['xtick.labelsize'] = fontsize
+        plt.rcParams['ytick.labelsize'] = fontsize
 
         
-        # set color palette
-        if color == None: color = 'seaborn-v0_8-whitegrid'
-        plt.style.use(color) 
+
 
         
         '''
@@ -461,8 +467,9 @@ class Spectra():
         else:
             ax1 = axs
         if prop_const: 
-            ax2 = ax1.twinx()
-            ax2.grid(None)
+            ax3 = ax1.twinx()
+            ax3.grid(None)
+            ax3.set_ylim(-10,430)
         for gas_cell in self.gas_cells:
             label_str = name_cell +' '+ str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
@@ -475,22 +482,24 @@ class Spectra():
             
             # handle what to plot
             if absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorbance_lam
+            elif absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorbance
             elif not absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorp
             elif not absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorp_lam
             ax1.plot(x, y, label=label_str)
             if prop_const: 
                 if self.observer.unit== 'lam': y2 = gas_cell.prop_const_lam
                 elif self.observer.unit== 'wav': y2 = gas_cell.prop_const
-                y2[y2 > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
-                ax2.plot(x,y2, '--', color='grey')    
-                ax2.set_ylabel('proptionality constant [ppm*m]')
+                #y2[y2 > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
+                ax3.plot(x,y2, '--', color='grey')    
+                ax3.set_ylabel('absorption coefficient $k_{\\nu}$ [ppm*m]', fontsize = fontsize_ax_label)
+                ax3.tick_params(axis='y', labelsize=fontsize_ticks)
        
         
         # legend gas cell plot
-        ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
-        #ax1.legend(bbox_to_anchor = (0.6, 0.7), loc='lower left', shadow=True, fontsize=fontsize) # for specific positioning
+        #ax1.legend(loc='upper right', shadow=True, fontsize=fontsize, facecolor = 'white')
+        ax1.legend(bbox_to_anchor = (0.5, 1.2), loc='lower center', shadow=True, fontsize=fontsize) # for specific positioning
         #https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates
-        if self.observer.unit == 'wav':    ax1.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_labe,
+        if self.observer.unit == 'wav':    ax1.set_xlabel(name_wavnum + ' [1/cm]', fontsize=fontsize_ax_label,
                                                          labelpad = int(fontsize*0.5))
         elif self.observer.unit == 'lam':  ax1.set_xlabel(name_wavlen + ' [nm]', fontsize=fontsize_ax_label,
                                                          labelpad = int(fontsize*0.5))
@@ -516,8 +525,9 @@ class Spectra():
             ax1.ylim(ylim)
             
         if export: 
+            plt.rcParams['svg.fonttype'] = 'none'
             fig.patch.set_alpha(0.)
-            plt.savefig(os.path.join('exports', self.name +'_plot.' + filetype), dpi=300)
+            plt.savefig(os.path.join('exports', self.name +'_plot.' + filetype))
             plt.savefig(os.path.join('exports', self.name +'_plot.pdf'), dpi=300)
 
         return ax1
