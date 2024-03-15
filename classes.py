@@ -389,7 +389,12 @@ class Spectra():
         """
         # set color palette
         if color == None: color = 'seaborn-v0_8-whitegrid'
-        plt.style.use(color) 
+        try:
+            plt.style.use(color)
+        except: #if single color, add to beginning of color palette
+            colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            colors.insert(0, color)
+            plt.rcParams['axes.prop_cycle'] = plt.cycler(color=colors)
         
   
         # parameter
@@ -402,16 +407,7 @@ class Spectra():
         plt.rcParams['ytick.labelsize'] = fontsize
         plt.rcParams['font.family'] = font
 
-        
 
-
-        
-        '''
-        # to change default colormap
-        plt.rcParams["image.cmap"] = "Set1"
-        # to change default color cycle
-        plt.rcParams['axes.prop_cycle'] = plt.cycler(color=plt.cm.Set1.colors)
-        '''
         #langauge stuff
         if language == 'German': 
             name_wavlen = 'Wellenlänge' 
