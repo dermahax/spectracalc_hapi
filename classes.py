@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+
 plt.rcParams['svg.fonttype'] = 'none' # when exporting svg, keeps the text as text, not path
 import os
 import sys
@@ -348,7 +349,8 @@ class Spectra():
              color = None, 
              language = "English",
              absorbance = False,
-             prop_const = False):
+             prop_const = False,
+             font = 'Latin Modern Roman'):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -378,6 +380,9 @@ class Spectra():
         prop_const :BOOL, optional
             If set to True, a 2nd y-axis with the proportionality factor FAC is drawn:  conc = FAC * Absorance
             Only yet works for one gas in a gas cell.
+            
+        font : String, optional
+            Name of font. Default is 'Latin Modern Roman'
         -------
         None.
 
@@ -386,14 +391,16 @@ class Spectra():
         if color == None: color = 'seaborn-v0_8-whitegrid'
         plt.style.use(color) 
         
+  
         # parameter
-        fontsize_subplot_title = fontsize +2
+        fontsize_subplot_title = fontsize
         fontsize_ax_label = fontsize
         fontsize_ticks = fontsize
         plt.rcParams['font.size']= fontsize
         plt.rcParams['axes.labelsize'] = fontsize
         plt.rcParams['xtick.labelsize'] = fontsize
         plt.rcParams['ytick.labelsize'] = fontsize
+        plt.rcParams['font.family'] = font
 
         
 
@@ -469,7 +476,7 @@ class Spectra():
         if prop_const: 
             ax3 = ax1.twinx()
             ax3.grid(None)
-            ax3.set_ylim(-10,430)
+            ax3.set_ylim(-10,830)
         for gas_cell in self.gas_cells:
             label_str = name_cell +' '+ str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
@@ -491,7 +498,7 @@ class Spectra():
                 elif self.observer.unit== 'wav': y2 = gas_cell.prop_const
                 #y2[y2 > 400] = 0 # for low absorbance, we get otherwise really high values which destroy the plot
                 ax3.plot(x,y2, '--', color='grey')    
-                ax3.set_ylabel('absorption coefficient $k_{\\nu}$ [ppm*m]', fontsize = fontsize_ax_label)
+                ax3.set_ylabel('proportionality constant $k_{\\nu}^{-1}$ [(ppm*m)$^{-1}$]', fontsize = fontsize_ax_label)
                 ax3.tick_params(axis='y', labelsize=fontsize_ticks)
        
         
