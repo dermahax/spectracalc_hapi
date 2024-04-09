@@ -388,10 +388,12 @@ class Spectra():
 
         """
         # set color palette
+        plt.rcdefaults()
         if color == None: color = 'seaborn-v0_8-whitegrid'
         try:
             plt.style.use(color)
         except: #if single color, add to beginning of color palette
+            plt.style.use('seaborn-v0_8-whitegrid')
             colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
             colors.insert(0, color)
             plt.rcParams['axes.prop_cycle'] = plt.cycler(color=colors)
