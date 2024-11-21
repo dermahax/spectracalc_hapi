@@ -4,4 +4,7 @@ pdfs/
 archiv/
 __pycache__/
 exports/
+!exports/demo_plot.jpg
 .spyproject/
+data/
+saved_spectra/
