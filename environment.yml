@@ -1,5 +1,6 @@
 name: hapi_env
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - asttokens=2.0.5=pyhd3eb1b0_0
