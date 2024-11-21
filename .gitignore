@@ -1,13 +1,3 @@
-CH4_lines.ipynb
 .ipynb_checkpoints/
-pdfs/
-archiv/
 __pycache__/
-exports/*
-!exports/
-!exports/demo_plot.jpg
-.spyproject/
-data/*
-!data/
-saved_spectra/*
-!saved_spectra/
+
