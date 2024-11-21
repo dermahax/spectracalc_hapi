@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+import matplotlib
+import locale
 
 plt.rcParams['svg.fonttype'] = 'none' # when exporting svg, keeps the text as text, not path
 import os
@@ -350,7 +352,9 @@ class Spectra():
              language = "English",
              absorbance = False,
              prop_const = False,
-             font = 'Latin Modern Roman'):
+             font = 'Latin Modern Roman',
+             transmission = False,
+            ):
         """
         Simple plot function. You may adjust it to your needs.
 
@@ -383,6 +387,9 @@ class Spectra():
             
         font : String, optional
             Name of font. Default is 'Latin Modern Roman'
+
+        transmission: Bool, optional
+            if true, transmission will be plotted (yet only for lambda as time is short)
         -------
         None.
 
@@ -418,6 +425,7 @@ class Spectra():
             else: name_absorp = 'Absorption'
             name_cell = 'GasZelle'
             for_str = 'für'
+            locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
         else:
             name_wavlen = 'wavelength' 
             name_wavnum = 'wavenumber'
@@ -474,7 +482,7 @@ class Spectra():
         if prop_const: 
             ax3 = ax1.twinx()
             ax3.grid(None)
-            ax3.set_ylim(-10,830)
+            ax3.set_ylim(-10,5530)
         for gas_cell in self.gas_cells:
             label_str = name_cell +' '+ str(gas_cell.name)+': '
             for gas in gas_cell.gasses:
@@ -487,9 +495,11 @@ class Spectra():
             
             # handle what to plot
             if absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorbance_lam
+            elif transmission and self.observer.unit== 'lam': x, y = gas_cell.lam, [(1- i)*100 for i in gas_cell.absorp_lam] 
             elif absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorbance
             elif not absorbance and self.observer.unit== 'wav': x, y = gas_cell.nu, gas_cell.absorp
-            elif not absorbance and self.observer.unit== 'lam': x, y = gas_cell.lam, gas_cell.absorp_lam
+            elif not absorbance and self.observer.unit and not transmission== 'lam': x, y = gas_cell.lam, gas_cell.absorp_lam
+            
             ax1.plot(x, y, label=label_str)
             if prop_const: 
                 if self.observer.unit== 'lam': y2 = gas_cell.prop_const_lam
@@ -528,7 +538,14 @@ class Spectra():
         ax2.tick_params(labelsize=fontsize_ticks)
         if ylim:
             ax1.ylim(ylim)
-            
+
+        #disable x e+3 plotting style
+     
+        #formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: '{:,.1f}'.format(x))
+        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: '{:n}'.format(x))
+        ax1.xaxis.set_major_formatter(formatter)
+        ax2.xaxis.set_major_formatter(formatter)
+        
         if export: 
             plt.rcParams['svg.fonttype'] = 'none'
             fig.patch.set_alpha(0.)
