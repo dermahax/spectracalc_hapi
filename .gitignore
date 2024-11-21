@@ -3,7 +3,8 @@ CH4_lines.ipynb
 pdfs/
 archiv/
 __pycache__/
-exports/
+exports/*
+!exports/
 !exports/demo_plot.jpg
 .spyproject/
 data/
