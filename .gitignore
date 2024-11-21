@@ -7,5 +7,7 @@ exports/*
 !exports/
 !exports/demo_plot.jpg
 .spyproject/
-data/
-saved_spectra/
+data/*
+!data/
+saved_spectra/*
+!saved_spectra/
