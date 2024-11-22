@@ -352,7 +352,7 @@ class Spectra():
              language = "English",
              absorbance = False,
              prop_const = False,
-             font = 'Latin Modern Roman',
+             font = 'DejaVu Sans',
              transmission = False,
             ):
         """
@@ -386,7 +386,7 @@ class Spectra():
             Only yet works for one gas in a gas cell.
             
         font : String, optional
-            Name of font. Default is 'Latin Modern Roman'
+            Name of font. Default is 'DejaVu Sans'
 
         transmission: Bool, optional
             if true, transmission will be plotted (yet only for lambda as time is short)
