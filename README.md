@@ -4,9 +4,10 @@ Python representation of [spectracalc.com](www.spectracalc.com) using hapi.
 **Usage**:
 	run main.ipynb or for quick testing, use the binder link below.
 	Further instructions are in the code files. The workflow is as close as possible to spectracalc.com.
-	Either clone this repository, or for quick plotting use the binder.
-
+	Either clone this repository, or for quick plotting use the binder or Colab.
+[![Open In Colab](https://colab.research.google.com/assets/colabax/spectracalc_hapi/blob/main/main.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dermahax/spectracalc_hapi/HEAD?labpath=main.ipynb)
+
     
 **Features:**  
     Simple plotting and summary method
