@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/spectracalc_hapi/__init__.py
+src/spectracalc_hapi/classes.py
+src/spectracalc_hapi.egg-info/PKG-INFO
+src/spectracalc_hapi.egg-info/SOURCES.txt
+src/spectracalc_hapi.egg-info/dependency_links.txt
+src/spectracalc_hapi.egg-info/requires.txt
+src/spectracalc_hapi.egg-info/top_level.txt

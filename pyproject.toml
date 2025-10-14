@@ -19,11 +19,14 @@ classifiers = [
 dependencies = [
   "numpy>=1.26,<3",
   "matplotlib",
+  "hitran-api==1.2.2.2",
 ]
 
-# ----- setuptools configuration -----
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.urls]
+Repository = "ttps://github.com/dermahax/spectracalc_hapi.git"

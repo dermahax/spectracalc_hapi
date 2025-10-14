@@ -1,3 +1,7 @@
 .ipynb_checkpoints/
 __pycache__/
+exports/
+saved_spectra/
+__pycache__/
+
 
