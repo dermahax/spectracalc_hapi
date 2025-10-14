@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]  # 'wheel' is optional
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectracalc_hapi"
+version = "0.1.0"
+description = "Enables an API for the HITRAN database, the workflow is as in spectracalc.com"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Max Bergau", email = "you@example.com" }]
+license = { file = "LICENSE" }  # or keep { text = "<full MIT license text>" }
+keywords = ["spectracalc", "hapi", "spectra"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "numpy>=1.26,<3",
+  "matplotlib",
+]
+
+# ----- setuptools configuration -----
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
