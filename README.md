@@ -8,7 +8,13 @@ Python representation of [spectracalc.com](www.spectracalc.com) using hapi.
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dermahax/spectracalc_hapi/blob/main/main.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dermahax/spectracalc_hapi/HEAD?labpath=main.ipynb)
 
-    
+
+**Local Installation**
+Install the project as an editable installation:  
+`pip install -e .`  
+*All dependencies will be automatically installed!*
+
+
 **Features:**  
     Simple plotting and summary method
     Correct implementation of self-broadening
